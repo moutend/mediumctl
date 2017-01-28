@@ -29,9 +29,27 @@ type Token struct {
 	ExpiresAt         int
 }
 
-var tokenFilePath string
+var (
+	version       = "0.1.0"
+	revision      = "latest"
+	tokenFilePath string
+)
 
 const tokenFileName = ".mediumctl"
+
+func showPostedArticleInfo(p *medium.PostedArticle) {
+	fmt.Println("Your article was successfully posted.\n")
+	fmt.Printf("Title: %s\n", p.Title)
+	fmt.Printf("Status: %s\n", p.PublishStatus)
+	if len(p.Tags) > 0 {
+		fmt.Printf("Tags: %s\n", strings.Join(p.Tags, " "))
+	}
+	fmt.Printf("URL: %s\n", p.URL)
+	if p.CanonicalURL != "" {
+		fmt.Printf("Canonical URL: %s\n", p.CanonicalURL)
+	}
+	return
+}
 
 func parseArticle(filename string) (article medium.Article, err error) {
 	format := "markdown"
@@ -56,6 +74,9 @@ func parseArticle(filename string) (article medium.Article, err error) {
 		canonicalURL string
 		notify       bool
 	)
+
+	title = "untitled"
+	status = "public"
 
 	for i, line := range lines[1:] {
 		if strings.HasPrefix(line, "---") {
@@ -173,8 +194,11 @@ func Run(args []string) (err error) {
 		err = Auth(args)
 	case "info":
 		err = Info(args)
-	case "publication":
+	case "p":
 		err = Post(args, false)
+	case "publication":
+	case "u":
+		err = Post(args, true)
 	case "user":
 		err = Post(args, true)
 	case "version":
@@ -301,7 +325,7 @@ func Post(args []string, userFlag bool) (err error) {
 		if err != nil {
 			return err
 		}
-		fmt.Println(p)
+		showPostedArticleInfo(p)
 		return nil
 	}
 	ps, err := u.Publications()
@@ -315,14 +339,32 @@ func Post(args []string, userFlag bool) (err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println(p)
+	showPostedArticleInfo(p)
 	return
 }
 
 func Version(args []string) (err error) {
+	fmt.Printf("%s-%s\n", version, revision)
 	return
 }
 
 func Help(args []string) (err error) {
+	fmt.Println(`usage: mediumctl [commands] [options]
+
+Commands:
+  auth
+    Login to Medium with OAuth.
+  info
+    Show the information about current user and its publications.
+  user, u
+    Post a story to current user profile page.
+  publication, p
+    Post a story to current user's publication page.
+  version
+  Show mediumctl version.
+  help
+    Show this message.
+
+If you need more information, please visit at https://github.com/moutend/mediumctl.`)
 	return
 }
