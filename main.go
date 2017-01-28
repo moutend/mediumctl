@@ -217,20 +217,17 @@ func Auth(args []string) (err error) {
 		clientIDFlag     string
 		clientSecretFlag string
 		debugFlag        bool
-		hostFlag         string
-		portFlag         int
+		redirectURIFlag string
 	)
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
-	f.StringVar(&hostFlag, "h", "", "@@@")
-	f.IntVar(&portFlag, "p", 0, "@@@")
-	f.StringVar(&clientIDFlag, "i", "", "@@@")
-	f.StringVar(&clientSecretFlag, "s", "", "@@@")
-	f.BoolVar(&debugFlag, "debug", false, "@@@")
+	f.StringVar(&redirectURIFlag, "r", "", "Redirect URI for OAuth application.")
+	f.StringVar(&clientIDFlag, "i", "", "Client ID of OAuth application.")
+	f.StringVar(&clientSecretFlag, "s", "", "Client secret of OAuth application.")
+	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
 
-	redirectURI := fmt.Sprintf("%s:%d", hostFlag, portFlag)
-	code, err := getCode(clientIDFlag, redirectURI)
+	code, err := getCode(clientIDFlag, redirectURIFlag)
 	if err != nil {
 		return
 	}
@@ -238,7 +235,7 @@ func Auth(args []string) (err error) {
 	if debugFlag {
 		c.SetLogger(log.New(os.Stdout, "debug: ", 0))
 	}
-	token, err := c.Token(code, redirectURI)
+	token, err := c.Token(code, redirectURIFlag)
 	if err != nil {
 		return
 	}
@@ -256,7 +253,7 @@ func Info(args []string) (err error) {
 	)
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
-	f.BoolVar(&debugFlag, "debug", false, "@@@")
+	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
 
 	t, err := loadToken()
@@ -295,13 +292,11 @@ func Info(args []string) (err error) {
 
 func Post(args []string, userFlag bool) (err error) {
 	var (
-		publicationFlag string
 		debugFlag       bool
 	)
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
-	f.StringVar(&publicationFlag, "p", "", "@@@")
-	f.BoolVar(&debugFlag, "debug", false, "@@@")
+	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
 
 	article, err := parseArticle(f.Args()[0])
@@ -349,22 +344,22 @@ func Version(args []string) (err error) {
 }
 
 func Help(args []string) (err error) {
-	fmt.Println(`usage: mediumctl [commands] [options]
+	fmt.Println(`usage: mediumctl [command] [options]
 
-Commands:
+Command:
   auth
-    Login to Medium with OAuth.
+    Setting up API token for Medium with OAuth.
   info
     Show the information about current user and its publications.
   user, u
-    Post a story to current user profile page.
+    Post HTML or Markdown file to current user profile.
   publication, p
-    Post a story to current user's publication page.
+    Post HTML or Markdown file to current user's publication.
   version
-  Show mediumctl version.
+  Show version and revision information.
   help
     Show this message.
 
-If you need more information, please visit at https://github.com/moutend/mediumctl.`)
+For more information, please see https://github.com/moutend/mediumctl.`)
 	return
 }
