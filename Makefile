@@ -49,7 +49,7 @@ ifndef VERSION
 	@echo '[ERROR] $$VERSION must be specified'
 	exit 255
 endif
-	go build -ldflags "-X $(PACKAGE).revision=$(REVISION) -X $(PACKAGE).version=$(VERSION)" \
+	go build -ldflags "-X main.revision=$(REVISION) -X main.version=$(VERSION)" \
 		-o $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH)_$(VERSION) main.go
 
 $(DEVTOOL_DIR)/$(GOOS)/$(GOARCH)/glide:
