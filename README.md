@@ -37,24 +37,33 @@ $ go install github.com/moutend/mediumctl
 
 ## Setting up API token
 
-First off, you need set up API token with `auth` command.
-Go to https://medium.com/me/applications, please create a new OAuth application.
+First off, you need set up API token. Open https://medium.com/me/applications, please create a new OAuth application.
 
 You can specify any client name and description, but you must specify local IP address assigned your machine (e.g. `192.168.1.2`) as the redirect URI.
 Internally, `mediumctl` launches local web server with given host name and port number, and then extract the shortlive code from redirected HTTP request to generate API token. This is the most tricky part.
 
+After creating OAuth application, please run `auth` command the following flags:
+
+- `-i` ... client ID
+- `-s` ... client secret
+- `-u` ... redirect URI
+
 In the following example, it assumes that you have specified `http://192.168.1.2:4567` as the redirect URI.
 
 ```shell
-$ mediumctl auth -r http://192.168.1.2:4567 -i YOUR_CLIENT_ID -s YOUR_CLIENT_SECRET
+$ mediumctl auth -r http://192.168.1.2:4567 -i CLIENT_ID -s CLIENT_SECRET
 ```
 
 Then browser will be automatically opened, please check the listed grant types and press OK to continue.
+If you would be asked network access permission during this step, please allow it.
 Your API token will be saved at `$HOME/.mediumctl` and the web browser will be closed automatically.
+
 Now you can post an article to your user profile and your publications.
 
+### Setting up API token with self-issued token
+
 Alternatively, it's not recommended but you can set up an API token by hand.
-Go to https://medium.com/me/settings, please generate self-issued API token.
+Open https://medium.com/me/settings, please generate self-issued API token.
 Then create a JSON file at `$HOME/.mediumctl` with the following content:
 
 ```js
