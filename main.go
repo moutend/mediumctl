@@ -17,6 +17,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	medium "github.com/moutend/go-medium"
 	"github.com/skratchdot/open-golang/open"
@@ -121,14 +122,25 @@ func getCode(clientID, redirectURI string) (code string, err error) {
 		return
 	}
 	defer l.Close()
-	quit := make(chan string)
+
+	type value struct {
+		code  string
+		error error
+	}
+	quit := make(chan value)
 	go http.Serve(l, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(`<script>window.open("about:blank","_self").close()</script>`))
 		w.(http.Flusher).Flush()
-		code := req.FormValue("code")
-		if code != "" {
-			quit <- code
+		c := req.FormValue("code")
+		e := req.FormValue("error")
+		v := value{
+			code:  c,
+			error: nil,
 		}
+		if e != "" {
+			v.error = fmt.Errorf(e)
+		}
+		quit <- v
 	}))
 	stateBytes := make([]byte, 88)
 	_, err = rand.Read(stateBytes)
@@ -143,7 +155,15 @@ func getCode(clientID, redirectURI string) (code string, err error) {
 	if err = open.Start(p); err != nil {
 		return
 	}
-	return <-quit, nil
+	select {
+	case v := <-quit:
+		if v.error != nil {
+			return "", v.error
+		}
+		return v.code, nil
+	case <-time.After(60 * time.Second):
+		return "", fmt.Errorf("timeout")
+	}
 }
 
 func saveToken(clientID, clientSecret string, token *medium.Token) (err error) {
@@ -217,15 +237,24 @@ func Auth(args []string) (err error) {
 		clientIDFlag     string
 		clientSecretFlag string
 		debugFlag        bool
-		redirectURIFlag string
+		redirectURIFlag  string
 	)
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
-	f.StringVar(&redirectURIFlag, "r", "", "Redirect URI for OAuth application.")
+	f.StringVar(&redirectURIFlag, "u", "", "Redirect URI for OAuth application.")
 	f.StringVar(&clientIDFlag, "i", "", "Client ID of OAuth application.")
 	f.StringVar(&clientSecretFlag, "s", "", "Client secret of OAuth application.")
 	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
+	if redirectURIFlag == "" {
+		return fmt.Errorf("please specify redirect URI")
+	}
+	if clientIDFlag == "" {
+		return fmt.Errorf("please specify client ID")
+	}
+	if clientSecretFlag == "" {
+		return fmt.Errorf("please specify client secret")
+	}
 
 	code, err := getCode(clientIDFlag, redirectURIFlag)
 	if err != nil {
@@ -292,7 +321,7 @@ func Info(args []string) (err error) {
 
 func Post(args []string, userFlag bool) (err error) {
 	var (
-		debugFlag       bool
+		debugFlag bool
 	)
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
