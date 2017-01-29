@@ -51,7 +51,7 @@ After creating OAuth application, please run `auth` command the following flags:
 In the following example, it assumes that you have specified `http://192.168.1.2:4567` as the redirect URI.
 
 ```shell
-$ mediumctl auth -r http://192.168.1.2:4567 -i CLIENT_ID -s CLIENT_SECRET
+$ mediumctl auth -u http://192.168.1.2:4567 -i CLIENT_ID -s CLIENT_SECRET
 ```
 
 Then browser will be automatically opened, please check the listed grant types and press OK to continue.
