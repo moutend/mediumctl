@@ -2,7 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/release/moutend/mediumctl.svg?style=flat-square)][release]
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)][license]
-[![CircleCI](https://circleci.com/gh/moutend/mediumctl/tree/master.svg?style=svg&circle-token=7555891ce81c70dfcfd4279e73d9043a53e5129d)][status]
+[![CircleCI](https://circleci.com/gh/moutend/mediumctl.svg?style=svg&circle-token=e7748578056ded93a5532904c047fc0f23db3bba)](https://circleci.com/gh/moutend/mediumctl)
 
 [release]: https://github.com/moutend/mediumctl/releases
 [license]: https://github.com/moutend/mediumctl/blob/master/LICENSE
