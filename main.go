@@ -1,6 +1,7 @@
 // Author: Yoshiyuki Koyanagi <moutend@gmail.com>
 // License: mIT
 
+// Package main implements mediumctl.
 package main
 
 import (
@@ -16,6 +17,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,7 +25,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 )
 
-type Token struct {
+type token struct {
 	ApplicationID     string
 	ApplicationSecret string
 	AccessToken       string
@@ -31,7 +33,7 @@ type Token struct {
 }
 
 var (
-	version       = "0.1.0"
+	version       = "v0.1.1"
 	revision      = "latest"
 	tokenFilePath string
 )
@@ -39,7 +41,7 @@ var (
 const tokenFileName = ".mediumctl"
 
 func showPostedArticleInfo(p *medium.PostedArticle) {
-	fmt.Println("Your article was successfully posted.\n")
+	fmt.Println("Your article was successfully posted.")
 	fmt.Printf("Title: %s\n", p.Title)
 	fmt.Printf("Status: %s\n", p.PublishStatus)
 	if len(p.Tags) > 0 {
@@ -52,45 +54,54 @@ func showPostedArticleInfo(p *medium.PostedArticle) {
 	return
 }
 
-func parseArticle(filename string) (article medium.Article, err error) {
-	format := "markdown"
-	if strings.HasSuffix(filename, "html") || strings.HasSuffix(filename, "htm") {
-		format = "html"
-	}
+func parseArticle(filename string) (article medium.Article, publicationNumber int, err error) {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return
 	}
-	lines := strings.Split(string(b), "\n")
-	if len(lines) < 1 {
+	if len(b) == 0 {
 		err = fmt.Errorf("%s is empty", filename)
 		return
 	}
+
 	var (
 		title        string
 		tags         []string
 		content      string
+		format       string
 		license      string
 		status       string
 		canonicalURL string
 		notify       bool
 	)
-
+	format = "markdown"
+	if strings.HasSuffix(filename, "html") || strings.HasSuffix(filename, "htm") {
+		format = "html"
+	}
 	title = "untitled"
 	status = "public"
+	lines := strings.Split(string(b), "\n")
 
 	for i, line := range lines[1:] {
 		if strings.HasPrefix(line, "---") {
 			content = strings.Join(lines[i+1:], "\n")
 			break
 		}
+		if strings.HasPrefix(line, "publication: ") {
+			publicationNumber, err = strconv.Atoi(line[len("publication: "):])
+			if err != nil {
+				return
+			}
+		}
 		if strings.HasPrefix(line, "title: ") {
 			title = line[len("title: "):]
+		}
+		if strings.HasPrefix(line, "tags: ") {
+			tags = strings.Split(line[len("tags: "):], " ")
 		}
 		if strings.HasPrefix(line, "notify: true") {
 			notify = true
 		}
-
 		if strings.HasPrefix(line, "status: ") {
 			status = line[len("status: "):]
 		}
@@ -99,9 +110,6 @@ func parseArticle(filename string) (article medium.Article, err error) {
 		}
 		if strings.HasPrefix(line, "canonicalURL: ") {
 			canonicalURL = line[len("canonicalURL: "):]
-		}
-		if strings.HasPrefix(line, "tags: ") {
-			tags = strings.Split(line[len("tags: "):], " ")
 		}
 	}
 	article = medium.Article{
@@ -166,12 +174,12 @@ func getCode(clientID, redirectURI string) (code string, err error) {
 	}
 }
 
-func saveToken(clientID, clientSecret string, token *medium.Token) (err error) {
-	b, err := json.Marshal(Token{
+func saveToken(clientID, clientSecret string, t *medium.Token) (err error) {
+	b, err := json.Marshal(token{
 		ApplicationID:     clientID,
 		ApplicationSecret: clientSecret,
-		AccessToken:       token.AccessToken,
-		ExpiresAt:         token.ExpiresAt,
+		AccessToken:       t.AccessToken,
+		ExpiresAt:         t.ExpiresAt,
 	})
 	if err != nil {
 		return
@@ -180,18 +188,18 @@ func saveToken(clientID, clientSecret string, token *medium.Token) (err error) {
 	return
 }
 
-func loadToken() (*Token, error) {
+func loadToken() (*token, error) {
 	b, err := ioutil.ReadFile(tokenFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("API token is not set. Please run 'auth' at first.")
+		return nil, fmt.Errorf("API token is not set. Please run 'auth' at first")
 	}
-	var token Token
-	err = json.Unmarshal(b, &token)
-	return &token, err
+	var t token
+	err = json.Unmarshal(b, &t)
+	return &t, err
 }
 
 func main() {
-	err := Run(os.Args)
+	err := run(os.Args)
 
 	if err != nil {
 		log.New(os.Stderr, "error: ", 0).Fatal(err)
@@ -200,9 +208,9 @@ func main() {
 
 	os.Exit(0)
 }
-func Run(args []string) (err error) {
+func run(args []string) (err error) {
 	if len(args) < 2 {
-		return Help(args)
+		return helpCommand(args)
 	}
 	u, err := user.Current()
 	if err != nil {
@@ -211,28 +219,29 @@ func Run(args []string) (err error) {
 	tokenFilePath = filepath.Join(u.HomeDir, tokenFileName)
 	switch args[1] {
 	case "auth":
-		err = Auth(args)
+		err = authCommand(args)
 	case "info":
-		err = Info(args)
+		err = infoCommand(args)
 	case "p":
-		err = Post(args, false)
+		err = postCommand(args, false)
 	case "publication":
+		err = postCommand(args, false)
 	case "u":
-		err = Post(args, true)
+		err = postCommand(args, true)
 	case "user":
-		err = Post(args, true)
+		err = postCommand(args, true)
 	case "version":
-		err = Version(args)
+		err = versionCommand(args)
 	case "help":
-		err = Help(args)
+		err = helpCommand(args)
 	default:
 		fmt.Fprintf(os.Stderr, "%s: '%s' is not a %s subcommand.\n", args[0], args[1], args[0])
-		err = Help(args)
+		err = helpCommand(args)
 	}
 	return
 }
 
-func Auth(args []string) (err error) {
+func authCommand(args []string) (err error) {
 	var (
 		clientIDFlag     string
 		clientSecretFlag string
@@ -276,7 +285,7 @@ func Auth(args []string) (err error) {
 	return
 }
 
-func Info(args []string) (err error) {
+func infoCommand(args []string) (err error) {
 	var (
 		debugFlag bool
 	)
@@ -319,7 +328,7 @@ func Info(args []string) (err error) {
 	return
 }
 
-func Post(args []string, userFlag bool) (err error) {
+func postCommand(args []string, userFlag bool) (err error) {
 	var (
 		debugFlag bool
 	)
@@ -328,7 +337,7 @@ func Post(args []string, userFlag bool) (err error) {
 	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
 
-	article, err := parseArticle(f.Args()[0])
+	article, publicationNumber, err := parseArticle(f.Args()[0])
 	if err != nil {
 		return
 	}
@@ -359,7 +368,11 @@ func Post(args []string, userFlag bool) (err error) {
 	if len(ps) == 0 {
 		return fmt.Errorf("you have no publications yet")
 	}
-	p, err := ps[0].Post(article)
+	if publicationNumber < 0 || publicationNumber > len(ps)-1 {
+		err = fmt.Errorf("publication number '%d' is invalid", publicationNumber)
+		return
+	}
+	p, err := ps[publicationNumber].Post(article)
 	if err != nil {
 		return
 	}
@@ -367,12 +380,12 @@ func Post(args []string, userFlag bool) (err error) {
 	return
 }
 
-func Version(args []string) (err error) {
+func versionCommand(args []string) (err error) {
 	fmt.Printf("%s-%s\n", version, revision)
 	return
 }
 
-func Help(args []string) (err error) {
+func helpCommand(args []string) (err error) {
 	fmt.Println(`usage: mediumctl [command] [options]
 
 Command:
