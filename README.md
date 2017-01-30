@@ -104,7 +104,7 @@ You can provide additional information with frontmatter. The following table sho
 | `title` | Title of the article | `Untitled` |
 | `tags` | Tags associated the article. Only three tags can be specified. | blank |
 | `status` | One of `public`, `draft` and `unlisted`. `public` |
-| `publication` | Publication number. | `1` |
+| `publication` | Publication number. | `0` |
 | `notify` | Whether notify followers that the user has published new article. | `false` |
 | `license` | License of the article listed below. | `all-rights-reserved` |
 | `canonicalURL` | Canonical URL for the article. | blank |
