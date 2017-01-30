@@ -150,9 +150,23 @@ Simple is not equal to easy, but simple made you easy.
 
 Some HTML tags cannot be used. For a full list of accepted HTML tags, please see [Medium API documentation](https://medium.com/@katie/a4367010924e).
 
-## Special heading element
+## Heading element conversion
 
-If you have the markdown like:
+Note that heading elements are automatically converted according to the following rules.
+
+| Before | After |
+|:--|:--|
+| The first `h1` | `h1` |
+| The second and subsequent `h1` | `h3` |
+| `h2` | `h4` |
+| `h3` | `h4` |
+| `h4` | `h4` |
+| `h5` and `h6` | `p` |
+
+Note that only the first heading level 1 is treated as heading level 1.
+This is the specification of Medium API and you cannot change this behavior.
+
+For example, if you have the markdown file like this:
 
 ```markdown
 ---
@@ -172,10 +186,7 @@ second paragraph ...
 
 In the example above, first heading level 1 element `# Title of the article` will be treated as heading level 1.
 However, second and third heading level 1 elements are treated as heading level 2.
-This is the specification of Medium API and you cannot change this behavior 
-
-Note that only the first heading level 1 is treated as heading level 1.
-I recommend you to specify the first heading level 1 as same as title of the article.
+I recommend you to specify the first heading level 1 as same as title of the article to avoid confusion.
 
 ## API limitation
 
