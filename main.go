@@ -112,6 +112,9 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 			canonicalURL = line[len("canonicalURL: "):]
 		}
 	}
+	if content == "" {
+		content = strings.Join(lines, "\n")
+	}
 	article = medium.Article{
 		Title:           title,
 		ContentFormat:   format,
@@ -306,6 +309,7 @@ func infoCommand(args []string) (err error) {
 	if err != nil {
 		return
 	}
+	fmt.Printf("You are logged in as:\n\n")
 	fmt.Printf("Name: %s\n", u.Name)
 	fmt.Printf("Username: %s\n", u.Username)
 	fmt.Printf("URL: %s", u.URL)
@@ -319,11 +323,12 @@ func infoCommand(args []string) (err error) {
 		fmt.Println("You have no publications yet.")
 		return
 	}
-	fmt.Println("You have publication(s) below:")
-	for _, p := range ps {
+	fmt.Printf("\nYou have publication(s) below:\n\n")
+	for i, p := range ps {
+		fmt.Printf("Number: %d\n", i)
 		fmt.Printf("Name: %s\n", p.Name)
 		fmt.Printf("Description: %s\n", p.Description)
-		fmt.Printf("URL: %s\n", p.URL)
+		fmt.Printf("URL: %s\n\n", p.URL)
 	}
 	return
 }
