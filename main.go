@@ -87,8 +87,8 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 			content = strings.Join(lines[i+1:], "\n")
 			break
 		}
-		if strings.HasPrefix(line, "publication: ") {
-			publicationNumber, err = strconv.Atoi(line[len("publication: "):])
+		if strings.HasPrefix(line, "number: ") {
+			publicationNumber, err = strconv.Atoi(line[len("number: "):])
 			if err != nil {
 				return
 			}
