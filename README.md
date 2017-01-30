@@ -185,7 +185,7 @@ second paragraph ...
 ```
 
 In the example above, first heading level 1 element `# Title of the article` will be treated as heading level 1.
-However, second and third heading level 1 elements are treated as heading level 2.
+However, second and third heading level 1 elements are treated as heading level 3.
 I recommend you to specify the first heading level 1 as same as title of the article to avoid confusion.
 
 ## API limitation
