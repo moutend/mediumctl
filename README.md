@@ -40,11 +40,11 @@ $ go install github.com/moutend/mediumctl
 First off, you need set up API token. Open https://medium.com/me/applications, please create a new OAuth application.
 You can specify any client name and description, but you must specify local IP address assigned your machine (e.g. `192.168.1.2`) as the redirect URI.
 
-After creating OAuth application, please run `auth` command the following flags:
+After creating OAuth application, please run `oauth` command with the following flags:
 
+- `-u` ... redirect URI
 - `-i` ... client ID
 - `-s` ... client secret
-- `-u` ... redirect URI
 
 In the following example, it assumes that you have specified `http://192.168.1.2:4567` as the redirect URI for OAuth application.
 

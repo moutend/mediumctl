@@ -221,8 +221,12 @@ func run(args []string) (err error) {
 	}
 	tokenFilePath = filepath.Join(u.HomeDir, tokenFileName)
 	switch args[1] {
-	case "auth":
+	case "oauth":
 		err = authCommand(args)
+	case "o":
+		err = authCommand(args)
+	case "i":
+		err = infoCommand(args)
 	case "info":
 		err = infoCommand(args)
 	case "p":
@@ -233,8 +237,12 @@ func run(args []string) (err error) {
 		err = postCommand(args, true)
 	case "user":
 		err = postCommand(args, true)
+	case "v":
+		err = versionCommand(args)
 	case "version":
 		err = versionCommand(args)
+	case "h":
+		err = helpCommand(args)
 	case "help":
 		err = helpCommand(args)
 	default:
@@ -391,20 +399,20 @@ func versionCommand(args []string) (err error) {
 }
 
 func helpCommand(args []string) (err error) {
-	fmt.Println(`usage: mediumctl [command] [options]
+	fmt.Println(`usage: mediumctl <command> [options]
 
-Command:
-  auth
+Commands:
+  oauth, o
     Setting up API token for Medium with OAuth.
-  info
+  info, i
     Show the information about current user and its publications.
   user, u
     Post HTML or Markdown file to current user profile.
   publication, p
     Post HTML or Markdown file to current user's publication.
-  version
+  version, v
   Show version and revision information.
-  help
+  help, h
     Show this message.
 
 For more information, please see https://github.com/moutend/mediumctl.`)
