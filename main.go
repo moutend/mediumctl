@@ -84,7 +84,7 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 
 	for i, line := range lines[1:] {
 		if strings.HasPrefix(line, "---") {
-			content = strings.Join(lines[i+1:], "\n")
+			content = strings.Join(lines[i+2:], "\n")
 			break
 		}
 		if strings.HasPrefix(line, "number: ") {
