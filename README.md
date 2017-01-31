@@ -156,14 +156,15 @@ Note that heading elements are automatically converted according to the followin
 
 | Before | After |
 |:--|:--|
-| The first `h1` | `h1` |
+| The first `h1` | `h1` (title of the article) |
 | The second and subsequent `h1` | `h3` |
-| `h2` | `h4` |
+| The first `h2` | `h2` (Subtitle of the article) |
+| The second and subsequent `h2` | `h4` |
 | `h3` | `h4` |
 | `h4` | `h4` |
-| `h5` and `h6` | `p` |
+| `h5` and `h6` | `p` (Normal paragraph) |
 
-Note that only the first heading level 1 is treated as heading level 1.
+Note that the only first h1 and h2 are treated as title and sub title of the article.
 This is the specification of Medium API and you cannot change this behavior.
 
 For example, if you have the markdown file like this:
@@ -184,8 +185,8 @@ first paragraph ...
 second paragraph ...
 ```
 
-In the example above, first heading level 1 element `# Title of the article` will be treated as heading level 1.
-However, second and third heading level 1 elements are treated as heading level 3.
+In the example above, first heading level 1 element `# Title of the article` will be treated as the title of the article, and there is no sub title in this article.
+The second and third heading level 1 elements are treated as heading level 3.
 I recommend you to specify the first heading level 1 as same as title of the article to avoid confusion.
 
 ## API limitation
