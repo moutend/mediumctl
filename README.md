@@ -62,6 +62,7 @@ Now you can post an article to your user profile and your publications.
 ## Setting up API token with self-issued token
 
 Alternatively, it's not recommended but you can set up an API token by hand.
+
 Open https://medium.com/me/settings, please generate self-issued API token.
 Then create a JSON file that contains following key-value pairs at `$HOME/.mediumctl`.
 
@@ -95,6 +96,32 @@ $ mediumctl user example.html
 
 The HTML file `example.html` will be published at your profile.
 
+# Get information about the user and its publications
+
+To get information about the user and its publications, use `info` command.
+
+```shell
+$ mediumctl info
+```
+
+The output looks like this:
+
+```shell
+$ mediumctl info
+You are logged in as:
+
+Name: Test User
+Username: apitestuser0201
+URL: https://medium.com/@apitestuser0201
+
+You have publication(s) below:
+
+Number: 0
+Name: Test publication
+Description: testing medium api
+URL: https://medium.com/test-publication
+```
+
 # Frontmatter for HTML and Markdown
 
 You can provide additional information with frontmatter. The following table shows what property can be used.
@@ -103,11 +130,24 @@ You can provide additional information with frontmatter. The following table sho
 |:--|:--|:--|
 | `title` | Title of the article | `Untitled` |
 | `tags` | Tags associated the article. Only three tags can be specified. | blank |
-| `status` | One of `public`, `draft` and `unlisted`. `public` |
+| `publishedAt` | The date that the article published at. | current time |
+| `publishStatus` | One of `public`, `draft` and `unlisted`. `public` |
 | `number` | Publication number displayed when you run `info` command. | `0` |
 | `notify` | Whether notify followers that the user has published new article. | `false` |
 | `license` | License of the article listed below. | `all-rights-reserved` |
 | `canonicalURL` | Canonical URL for the article. | blank |
+
+### Date and time layout for `publishedAt`
+
+If you want to specify `publishedAt`, follow this layout:
+
+```
+2006-01-02T15:04:05+07:00
+```
+
+Note that you cannot specify future date as the publish date of the article. Also, you cannot specify the publish date before Jan 1st, 1970.
+
+### Valid licenses for `license`
 
 Valid values for `licence` are:
 
@@ -127,7 +167,7 @@ For example, you can create a Markdown file like this:
 ---
 title: The best way to learn Go
 tags: golang programming
-status: draft
+publishStatus: draft
 canonicalURL: https://blog.example.com/the-best-way-to-learn-go
 ---
 
