@@ -1,8 +1,8 @@
-hash: d8b959eeb94658b4518a801dfb4b898865657563d1c09d2c62ac196145969290
-updated: 2017-02-02T11:33:28.182341529+09:00
+hash: 505eed17d3282acb228db07573c9619ebc4da776a3e75c006bc8a4f2c40ac5b0
+updated: 2017-02-03T07:53:27.351418835+09:00
 imports:
 - name: github.com/moutend/go-medium
-  version: a8b878b6bc71d97cb7c6082575cb2e1056ab32e0
+  version: 242bb8c68a586ea8bda3f49e72e52685266a2619
 - name: github.com/skratchdot/open-golang
   version: 75fb7ed4208cf72d323d7d02fd1a5964a7a9073c
   subpackages:
