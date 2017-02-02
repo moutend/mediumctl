@@ -41,15 +41,15 @@ var (
 const tokenFileName = ".mediumctl"
 
 func showPostedArticleInfo(p *medium.PostedArticle) {
-	fmt.Println("Your article was successfully posted.")
-	fmt.Printf("Title: %s\n", p.Title)
-	fmt.Printf("Status: %s\n", p.PublishStatus)
+	fmt.Printf("Your article was successfully posted.\n\n")
+	fmt.Printf("title: %s\n", p.Title)
+	fmt.Printf("publishStatus: %s\n", p.PublishStatus)
 	if len(p.Tags) > 0 {
-		fmt.Printf("Tags: %s\n", strings.Join(p.Tags, " "))
+		fmt.Printf("tags: %s\n", strings.Join(p.Tags, " "))
 	}
 	fmt.Printf("URL: %s\n", p.URL)
 	if p.CanonicalURL != "" {
-		fmt.Printf("Canonical URL: %s\n", p.CanonicalURL)
+		fmt.Printf("canonicalURL: %s\n", p.CanonicalURL)
 	}
 	return
 }
@@ -65,21 +65,20 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 	}
 
 	var (
-		title        string
-		tags         []string
-		content      string
-		format       string
-		license      string
-		status       string
-		canonicalURL string
-		notify       bool
+		content         string
+		contentFormat   string
+		canonicalURL    string
+		license         string
+		notifyFollowers bool
+		publishedAt     string
+		publishStatus   string
+		tags            []string
+		title           string
 	)
-	format = "markdown"
+	contentFormat = "markdown"
 	if strings.HasSuffix(filename, "html") || strings.HasSuffix(filename, "htm") {
-		format = "html"
+		contentFormat = "html"
 	}
-	title = "untitled"
-	status = "public"
 	lines := strings.Split(string(b), "\n")
 
 	for i, line := range lines[1:] {
@@ -87,29 +86,32 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 			content = strings.Join(lines[i+2:], "\n")
 			break
 		}
+		if strings.HasPrefix(line, "canonicalURL: ") {
+			canonicalURL = line[len("canonicalURL: "):]
+		}
+		if strings.HasPrefix(line, "license: ") {
+			license = line[len("license: "):]
+		}
 		if strings.HasPrefix(line, "number: ") {
 			publicationNumber, err = strconv.Atoi(line[len("number: "):])
 			if err != nil {
 				return
 			}
 		}
-		if strings.HasPrefix(line, "title: ") {
-			title = line[len("title: "):]
+		if strings.HasPrefix(line, "notifyFollowers: true") {
+			notifyFollowers = true
+		}
+		if strings.HasPrefix(line, "publishedAt: ") {
+			publishedAt = line[len("publishedAt: "):]
+		}
+		if strings.HasPrefix(line, "publishStatus: ") {
+			publishStatus = line[len("publishStatus: "):]
 		}
 		if strings.HasPrefix(line, "tags: ") {
 			tags = strings.Split(line[len("tags: "):], " ")
 		}
-		if strings.HasPrefix(line, "notify: true") {
-			notify = true
-		}
-		if strings.HasPrefix(line, "status: ") {
-			status = line[len("status: "):]
-		}
-		if strings.HasPrefix(line, "license: ") {
-			license = line[len("license: "):]
-		}
-		if strings.HasPrefix(line, "canonicalURL: ") {
-			canonicalURL = line[len("canonicalURL: "):]
+		if strings.HasPrefix(line, "title: ") {
+			title = line[len("title: "):]
 		}
 	}
 	if content == "" {
@@ -117,13 +119,14 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 	}
 	article = medium.Article{
 		Title:           title,
-		ContentFormat:   format,
+		ContentFormat:   contentFormat,
 		Content:         content,
 		CanonicalURL:    canonicalURL,
 		Tags:            tags,
-		PublishStatus:   status,
+		PublishStatus:   publishStatus,
+		PublishedAt:     publishedAt,
 		License:         license,
-		NotifyFollowers: notify,
+		NotifyFollowers: notifyFollowers,
 	}
 	return
 }
