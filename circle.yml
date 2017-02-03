@@ -5,6 +5,9 @@ machine:
     - sudo mv linux-amd64/glide /usr/local/bin
     - cd $HOME/mediumctl && glide install
     - cp -r $HOME/mediumctl/vendor/github.com $HOME/.go_workspace/src
+test:
+  override:
+    - go test
 deployment:
   release:
     tag: /v[0-9]+\.[0-9]+\.[0-9]+/
