@@ -68,14 +68,11 @@ Then create a JSON file that contains following key-value pairs at `$HOME/.mediu
 
 ```js
 {
-  "ApplicationID": "",
-  "ApplicationSecret": "",
-  "AccessToken": "SELF_ISSUED_TOKEN",
-  "ExpiresAt": 0,
+  "AccessToken": "SELF_ISSUED_TOKEN"
 }
 ```
 
-Please replace `SELF_ISSUED_TOKEN` to your self-issued token. This file must be treated as the password and do NOT expose it.
+`SELF_ISSUED_TOKEN` is your self-issued token. This file must be treated as the password and do NOT expose it.
 
 ## Publishing an article
 
