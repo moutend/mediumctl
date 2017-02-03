@@ -3,6 +3,7 @@ machine:
     - mkdir -p $GOPATH/bin
     - mkdir -p $GOPATH/src
     - echo "PATH=$GOPATH/bin:$PATH" >> $HOME/.bashrc
+    - source $HOME/.bashrc
     - curl https://glide.sh/get | sh
     - glide install
     - cp -r ./vendor/github.com $GOPATH/src
