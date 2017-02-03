@@ -1,9 +1,8 @@
 machine:
-  environment:
-    PATH: "$GOPATH/bin:$PATH"
   pre:
     - mkdir -p $GOPATH/bin
     - mkdir -p $GOPATH/src
+    - echo "PATH=$GOPATH/bin:$PATH" >> $HOME/.bashrc
     - curl https://glide.sh/get | sh
     - glide install
     - cp -r ./vendor/github.com $GOPATH/src
