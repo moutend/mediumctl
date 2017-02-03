@@ -1,5 +1,4 @@
-PACKAGE=github.com/moutend/mediumctl
-EXECUTABLE_NAME := $(shell pwd | sed "s/.*\/\(.*\)$$/\1/")
+EXECUTABLE_NAME := mediumctl
 GOVERSION := $(shell go version)
 GOOS=$(word 1,$(subst /, ,$(lastword $(GOVERSION))))
 GOARCH=$(word 2,$(subst /, ,$(lastword $(GOVERSION))))
@@ -7,22 +6,14 @@ RELEASE_DIR=bin
 DEVTOOL_DIR=_devtools
 REVISION=$(shell git rev-parse --verify HEAD | cut -c-6)
 
-.PHONY: test clean build build-linux-amd64 build-linux-386 build-darwin-amd64 build-darwin-386 build-windows-amd64 build-windows-386 $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH) all
+.PHONY: clean build build-linux-amd64 build-linux-386 build-darwin-amd64 build-darwin-386 build-windows-amd64 build-windows-386 $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH) all
 
-all: install-deps build-linux-amd64 build-linux-386 build-darwin-amd64 build-darwin-386 build-windows-amd64 build-windows-386
-fvl: fmt vet lint test
+all: install-deps copy-vendor build-linux-amd64 build-linux-386 build-darwin-amd64 build-darwin-386 build-windows-amd64 build-windows-386
 
-fmt:
-	@go fmt
-
-vet:
-	@go vet
-
-lint:
-	@golint -min_confidence=0.1
-
-test:
-	@go test | tee -a log
+copy-vendor:
+ifdef CIRCLE_TAG
+	@cp -r vendor/github.com/* $(GOPATH)/src/github.com
+endif
 
 build: $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH)
 
