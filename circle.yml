@@ -1,5 +1,7 @@
 machine:
-  post:
+  pre:
+    - mkdir -p $GOPATH/bin
+    - mkdir -p $GOPATH/src
     - curl https://glide.sh/get | sh
     - glide install
     - cp -r ./vendor/github.com $GOPATH/src
