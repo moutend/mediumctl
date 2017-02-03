@@ -3,10 +3,8 @@ machine:
     - mkdir -p $HOME/.go_workspace/src
     - curl -L https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-linux-amd64.tar.gz | tar xvz
     - sudo mv linux-amd64/glide /usr/local/bin
-    - ls $HOME/mediumctl > ls
-    - cd $HOME/mediumctl
-    - glide install
-    - cp -r vendor/github.com $HOME/.go_workspace/src
+    - cd $HOME/mediumctl && glide install
+    - cp -r $HOME/mediumctl/vendor/github.com $HOME/.go_workspace/src
 deployment:
   release:
     tag: /v[0-9]+\.[0-9]+\.[0-9]+/
