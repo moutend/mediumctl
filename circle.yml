@@ -17,5 +17,5 @@ deployment:
     - go get github.com/tcnksm/ghr
     - make clean
     - make VERSION=$CIRCLE_TAG
-    - rm -rf bin/.*
+    - rm -rf bin/.gitkeep
     - ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG bin/
