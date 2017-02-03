@@ -1,12 +1,9 @@
 machine:
   pre:
-    - mkdir -p $GOPATH/bin
-    - mkdir -p $GOPATH/src
     - curl -L https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-linux-amd64.tar.gz | tar xvz
-    - pwd
-    - mv linux-amd64/glide $GOPATH/bin
+    - mv linux-amd64/glide /usr/local/bin
+    - cd $HOME/mediumctl
     - glide install
-    - cp -r ./vendor/github.com $GOPATH/src
 deployment:
   release:
     tag: /v[0-9]+\.[0-9]+\.[0-9]+/
