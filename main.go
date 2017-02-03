@@ -30,6 +30,7 @@ type token struct {
 	ApplicationSecret string
 	AccessToken       string
 	ExpiresAt         int
+	RefreshToken      string
 }
 
 var (
@@ -186,6 +187,7 @@ func saveToken(clientID, clientSecret string, t *medium.Token) (err error) {
 		ApplicationSecret: clientSecret,
 		AccessToken:       t.AccessToken,
 		ExpiresAt:         t.ExpiresAt,
+		RefreshToken:      t.RefreshToken,
 	})
 	if err != nil {
 		return
