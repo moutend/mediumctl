@@ -226,10 +226,14 @@ func run(args []string) (err error) {
 	}
 	tokenFilePath = filepath.Join(u.HomeDir, tokenFileName)
 	switch args[1] {
-	case "oauth":
-		err = authCommand(args)
 	case "o":
 		err = authCommand(args)
+	case "oauth":
+		err = authCommand(args)
+	case "r":
+		err = refreshCommand(args)
+	case "refresh":
+		err = refreshCommand(args)
 	case "i":
 		err = infoCommand(args)
 	case "info":
@@ -301,6 +305,33 @@ func authCommand(args []string) (err error) {
 	return
 }
 
+func refreshCommand(args []string) (err error) {
+	var (
+		debugFlag bool
+	)
+
+	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
+	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
+	f.Parse(args[2:])
+
+	t, err := loadToken()
+	if err != nil {
+		return
+	}
+	c := medium.NewClient(t.ApplicationID, t.ApplicationSecret, "")
+	if debugFlag {
+		c.SetLogger(log.New(os.Stdout, "debug: ", 0))
+	}
+	refreshedToken, err := c.RefreshToken(t.RefreshToken)
+	if err != nil {
+		return
+	}
+	if err = saveToken(t.ApplicationID, t.ApplicationSecret, refreshedToken); err != nil {
+		return
+	}
+	fmt.Println("Your API token was successfully refreshed.")
+	return
+}
 func infoCommand(args []string) (err error) {
 	var (
 		debugFlag bool
@@ -408,7 +439,9 @@ func helpCommand(args []string) (err error) {
 
 Commands:
   oauth, o
-    Setting up API token for Medium with OAuth.
+    Setting up API token with OAuth.
+  refresh, r
+    Refresh existing API token.
   info, i
     Show the information about current user and its publications.
   user, u
