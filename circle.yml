@@ -3,8 +3,10 @@ machine:
     - mkdir -p $HOME/.go_workspace/src
     - curl -L https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-linux-amd64.tar.gz | tar xvz
     - sudo mv linux-amd64/glide /usr/local/bin
-    - cd $HOME/mediumctl && glide install
-    - cp -r $HOME/mediumctl/vendor/github.com $HOME/.go_workspace/src
+dependencies:
+  overwrite:
+    - cd $HOME/$CIRCLE_PROJECT_REPONAME && glide install
+    - cp -r $HOME/$CIRCLE_PROJECT_REPONAME vendor/github.com $HOME/.go_workspace/src
 test:
   override:
     - go test
