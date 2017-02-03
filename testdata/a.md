@@ -1,5 +1,5 @@
 ---
-title: Test article A
+title: Test article Markdown
 ---
 
 # Test article A
