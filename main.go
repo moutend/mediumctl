@@ -34,7 +34,7 @@ type token struct {
 }
 
 var (
-	version       = "v0.2.0"
+	version       = "v0.2.1"
 	revision      = "dev"
 	tokenFilePath string
 )
