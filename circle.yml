@@ -1,4 +1,6 @@
 machine:
+  environment:
+    PATH: "$GOPATH/bin:$PATH"
   pre:
     - mkdir -p $GOPATH/bin
     - mkdir -p $GOPATH/src
