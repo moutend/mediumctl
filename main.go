@@ -44,7 +44,11 @@ const tokenFileName = ".mediumctl"
 func showPostedArticleInfo(p *medium.PostedArticle) {
 	fmt.Printf("Your article was successfully posted.\n\n")
 	fmt.Printf("title: %s\n", p.Title)
-	fmt.Printf("publishStatus: %s\n", p.PublishStatus)
+	if p.PublishStatus == "" {
+		fmt.Println("publishStatus: public")
+	} else {
+		fmt.Printf("publishStatus: %s\n", p.PublishStatus)
+	}
 	if len(p.Tags) > 0 {
 		fmt.Printf("tags: %s\n", strings.Join(p.Tags, " "))
 	}
