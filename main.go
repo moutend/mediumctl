@@ -17,10 +17,10 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/ericaro/frontmatter"
 	medium "github.com/moutend/go-medium"
 	"github.com/skratchdot/open-golang/open"
 )
@@ -34,7 +34,7 @@ type token struct {
 }
 
 var (
-	version       = "v0.2.1"
+	version       = "v0.3.0"
 	revision      = "dev"
 	tokenFilePath string
 )
@@ -60,79 +60,47 @@ func showPostedArticleInfo(p *medium.PostedArticle) {
 }
 
 func parseArticle(filename string) (article medium.Article, publicationNumber int, err error) {
-	b, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return
-	}
-	if len(b) == 0 {
-		err = fmt.Errorf("%s is empty", filename)
-		return
+	type FrontmatterOption struct {
+		Title             string   `fm:"title"`
+		ContentFormat     string   `fm:"contentFormat"`
+		Content           string   `fm:"content"`
+		CanonicalURL      string   `fm:"canonicalUrl"`
+		Tags              []string `fm:"tags"`
+		PublishStatus     string   `fm:"publishStatus"`
+		PublishedAt       string   `fm:"publishedAt"`
+		PublicationNumber int      `fm:"publicationNumber"`
+		License           string   `fm:"license"`
+		NotifyFollowers   bool     `fm:"notifyFollowers"`
 	}
 
-	var (
-		content         string
-		contentFormat   string
-		canonicalURL    string
-		license         string
-		notifyFollowers bool
-		publishedAt     string
-		publishStatus   string
-		tags            []string
-		title           string
-	)
-	contentFormat = "markdown"
+	var file []byte
+	var fo *FrontmatterOption = &FrontmatterOption{}
+
+	if file, err = ioutil.ReadFile(filename); err != nil {
+		return
+	}
+	if err = frontmatter.Unmarshal(file, fo); err != nil {
+		return
+	}
 	if strings.HasSuffix(filename, "html") || strings.HasSuffix(filename, "htm") {
-		contentFormat = "html"
+		fo.ContentFormat = "html"
+	} else {
+		fo.ContentFormat = "markdown"
 	}
-	lines := strings.Split(string(b), "\n")
 
-	for i, line := range lines[1:] {
-		if strings.HasPrefix(line, "---") {
-			content = strings.Join(lines[i+2:], "\n")
-			break
-		}
-		if strings.HasPrefix(line, "canonicalURL: ") {
-			canonicalURL = line[len("canonicalURL: "):]
-		}
-		if strings.HasPrefix(line, "license: ") {
-			license = line[len("license: "):]
-		}
-		if strings.HasPrefix(line, "number: ") {
-			publicationNumber, err = strconv.Atoi(line[len("number: "):])
-			if err != nil {
-				return
-			}
-		}
-		if strings.HasPrefix(line, "notifyFollowers: true") {
-			notifyFollowers = true
-		}
-		if strings.HasPrefix(line, "publishedAt: ") {
-			publishedAt = line[len("publishedAt: "):]
-		}
-		if strings.HasPrefix(line, "publishStatus: ") {
-			publishStatus = line[len("publishStatus: "):]
-		}
-		if strings.HasPrefix(line, "tags: ") {
-			tags = strings.Split(line[len("tags: "):], " ")
-		}
-		if strings.HasPrefix(line, "title: ") {
-			title = line[len("title: "):]
-		}
-	}
-	if content == "" {
-		content = strings.Join(lines, "\n")
-	}
 	article = medium.Article{
-		Title:           title,
-		ContentFormat:   contentFormat,
-		Content:         content,
-		CanonicalURL:    canonicalURL,
-		Tags:            tags,
-		PublishStatus:   publishStatus,
-		PublishedAt:     publishedAt,
-		License:         license,
-		NotifyFollowers: notifyFollowers,
+		Title:           fo.Title,
+		ContentFormat:   fo.ContentFormat,
+		Content:         fo.Content,
+		CanonicalURL:    fo.CanonicalURL,
+		Tags:            fo.Tags,
+		PublishStatus:   fo.PublishStatus,
+		PublishedAt:     fo.PublishedAt,
+		License:         fo.License,
+		NotifyFollowers: fo.NotifyFollowers,
 	}
+	publicationNumber = fo.PublicationNumber
+
 	return
 }
 func getCode(clientID, redirectURI string) (code string, err error) {
