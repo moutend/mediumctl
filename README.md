@@ -33,7 +33,7 @@ If you have already set up Go environment, just `go install`.
 $ go install github.com/moutend/mediumctl
 ```
 
-# Usage
+# Before starting
 
 ## Setting up API token with OAuth
 
