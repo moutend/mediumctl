@@ -2,8 +2,8 @@ machine:
   environment:
     GODIST: "go1.8.2.linux-amd64.tar.gz"
   post:
-    - echo "export GOPATH=''" >> $HOME/.bashrc
-    - echo "export GOPATH=''" >> $HOME/.profile
+    - echo "export GOPATH='/home/ubuntu/go'" >> $HOME/.bashrc
+    - echo "export PATH=/home/ubuntu/go/bin:$PATH" >> $HOME/.bashrc
     - mkdir -p downloads
     - test -e downloads/$GODIST || curl -o downloads/$GODIST https://storage.googleapis.com/golang/$GODIST
     - sudo rm -rf /usr/local/go
