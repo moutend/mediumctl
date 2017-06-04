@@ -1,5 +1,6 @@
 machine:
   environment:
+    GOPATH: ""
   pre:
     - go get -u github.com/golang/dep/cmd/dep
     - go get -u github.com/tcnksm/ghr
