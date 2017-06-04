@@ -12,8 +12,7 @@ dependencies:
   override:
     - mkdir -p $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME
     - mv $HOME/$CIRCLE_PROJECT_REPONAME $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME
-    - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-    - dep ensure
+    - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && dep ensure
 test:
   override:
     - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && go test
@@ -21,9 +20,6 @@ deployment:
   release:
     tag: /v[0-9]+\.[0-9]+\.[0-9]+/
     commands:
-    - cd $HOME/go/github.com/$CIRCLE_PROJECT_USERNAME /$CIRCLE_PROJECT_REPONAME
     - go get github.com/tcnksm/ghr
-    - make clean
-    - make VERSION=$CIRCLE_TAG
-    - rm -rf bin/.gitkeep
-    - ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG bin/
+    - cd $HOME/go/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && make clean && make VERSION=$CIRCLE_TAG
+    - ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_USERNAME/bin/
