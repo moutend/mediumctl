@@ -13,7 +13,6 @@ jobs:
           name: Run tests
           command: go test
 deploy:
-    tag: /v[0-9]+\.[0-9]+\.[0-9]+/
     command: |
       go get github.com/tcnksm/ghr
       make clean
