@@ -5,7 +5,7 @@ machine:
     - go get -u github.com/tcnksm/ghr
 test:
   override:
-    - cd -d ${HOME}/.go_project/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} && dep ensure
+    - cd ${HOME}/.go_project/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} && dep ensure
     - go test
 deployment:
   release:
