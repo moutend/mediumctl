@@ -3,11 +3,9 @@ machine:
   pre:
     - go get -u github.com/golang/dep/cmd/dep
     - go get -u github.com/tcnksm/ghr
-dependencies:
-  override:
-    - dep ensure
 test:
   override:
+    - dep ensure
     - go test
 deployment:
   release:
