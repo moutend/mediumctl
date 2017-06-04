@@ -21,5 +21,5 @@ deployment:
     tag: /v[0-9]+\.[0-9]+\.[0-9]+/
     commands:
     - go get github.com/tcnksm/ghr
-    - cd $HOME/go/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && make clean && make VERSION=$CIRCLE_TAG
+    - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && make clean && make VERSION=$CIRCLE_TAG
     - ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_USERNAME/bin/
