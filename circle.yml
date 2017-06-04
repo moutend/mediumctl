@@ -3,13 +3,16 @@ machine:
   pre:
     - go get -u github.com/golang/dep/cmd/dep
     - go get -u github.com/tcnksm/ghr
+    - mv $HOME/.go_workspace/bin/* $HOME/bin
+    - rm -rf $HOME/.go_workspace $HOME/.go_project $HOME/go
+    - mkdir -p $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME
+    - mv $HOME/$CIRCLE_PROJECT_REPONAME $HOME/src/github.com/$CIRCLE_PROJECT_USERNAME
 test:
   override:
-    - cd ${HOME}/.go_project/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} && dep ensure
-    - go test
+    - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && dep ensure && go test
 deployment:
   release:
     tag: /v[0-9]+\.[0-9]+\.[0-9]+/
     commands:
-    - make clean && make VERSION=$CIRCLE_TAG
+    - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && make clean && make VERSION=$CIRCLE_TAG
     - ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_USERNAME/bin/
