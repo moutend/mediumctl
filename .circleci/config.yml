@@ -12,9 +12,11 @@ jobs:
       - run:
           name: Run tests
           command: go test
-deploy:
-    command: |
-      go get github.com/tcnksm/ghr
-      make clean
-      make VERSION=$CIRCLE_TAG
-      ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG bin/
+deployment:
+  fake_deploy_for_cci2:
+    tag: /v[0-9]+\.[0-9]+\.[0-9]+/
+    commands:
+      - go get github.com/tcnksm/ghr
+      - make clean
+      - make VERSION=$CIRCLE_TAG
+      - ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG bin/
