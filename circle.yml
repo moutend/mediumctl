@@ -7,9 +7,12 @@ machine:
     - rm -rf $HOME/.go_workspace $HOME/.go_project $HOME/go
     - mkdir -p $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME
     - mv $HOME/$CIRCLE_PROJECT_REPONAME $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME
+dependencies:
+  override:
+    - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && dep ensure
 test:
   override:
-    - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && dep ensure && go test
+    - cd $HOME/go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && go test
 deployment:
   release:
     tag: /v[0-9]+\.[0-9]+\.[0-9]+/
