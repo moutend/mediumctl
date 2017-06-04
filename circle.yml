@@ -10,8 +10,9 @@ machine:
     - go get -u github.com/golang/dep/cmd/dep
 dependencies:
   override:
-    - mv $HOME/$CIRCLE_PROJECT_REPONAME $HOME/go
-    - cd $HOME/go/$CIRCLE_PROJECT_REPONAME
+    - mkdir -p $HOME/go/src/github.com/moutend
+    - mv $HOME/$CIRCLE_PROJECT_REPONAME $HOME/go/src/github.com/moutend
+    - cd $HOME/go/src/github.com/moutend/$CIRCLE_PROJECT_REPONAME
     - dep ensure
 test:
   override:
