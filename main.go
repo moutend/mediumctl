@@ -97,7 +97,7 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 		PublishStatus:   fo.PublishStatus,
 		PublishedAt:     fo.PublishedAt,
 		License:         fo.License,
-		NotifyFollowers: fo.NotifyFollowers,
+		NotifyFollowers: false,
 	}
 	publicationNumber = fo.PublicationNumber
 
