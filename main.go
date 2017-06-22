@@ -103,32 +103,26 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 
 	return
 }
-func getCode(clientID, redirectURI string) (code string, err error) {
-	l, err := net.Listen("tcp", "192.168.1.107:4000")
+func getCode(clientID string, redirectURL *url.URL) (code string, err error) {
+	listener, err := net.Listen("tcp", redirectURL.Hostname()+":"+redirectURL.Port())
 	if err != nil {
 		return
 	}
-	defer l.Close()
+	defer listener.Close()
 
-	type value struct {
-		code  string
-		error error
-	}
-	quit := make(chan value)
-	go http.Serve(l, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	responseChann := make(chan string)
+
+	go http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(`<script>window.open("about:blank","_self").close()</script>`))
 		w.(http.Flusher).Flush()
-		c := req.FormValue("code")
+
 		e := req.FormValue("error")
-		v := value{
-			code:  c,
-			error: nil,
-		}
 		if e != "" {
-			v.error = fmt.Errorf(e)
+			err = fmt.Errorf(e)
 		}
-		quit <- v
+		responseChann <- req.FormValue("code")
 	}))
+
 	stateBytes := make([]byte, 88)
 	_, err = rand.Read(stateBytes)
 	if err != nil {
@@ -136,21 +130,19 @@ func getCode(clientID, redirectURI string) (code string, err error) {
 	}
 	state := fmt.Sprintf("%x", stateBytes)
 	scope := "basicProfile,listPublications,publishPost"
-	redirectURI = url.QueryEscape(redirectURI)
-	q := fmt.Sprintf("client_id=%s&scope=%s&state=%s&response_type=code&redirect_uri=%s", clientID, scope, state, redirectURI)
-	p := "https://medium.com/m/oauth/authorize?" + q
-	if err = open.Start(p); err != nil {
+	query := fmt.Sprintf("client_id=%s&scope=%s&state=%s&response_type=code&redirect_uri=%s", clientID, scope, state, redirectURL)
+	uri := "https://medium.com/m/oauth/authorize?" + query
+	if err = open.Start(uri); err != nil {
 		return
 	}
 	select {
-	case v := <-quit:
-		if v.error != nil {
-			return "", v.error
-		}
-		return v.code, nil
+	case code = <-responseChann:
+		break
 	case <-time.After(60 * time.Second):
-		return "", fmt.Errorf("timeout")
+		err = fmt.Errorf("timeout")
+		break
 	}
+	return
 }
 
 func saveToken(clientID, clientSecret string, t *medium.Token) (err error) {
@@ -238,16 +230,17 @@ func authCommand(args []string) (err error) {
 		clientIDFlag     string
 		clientSecretFlag string
 		debugFlag        bool
-		redirectURIFlag  string
+		redirectURLFlag  string
+		redirectURL      *url.URL
 	)
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
-	f.StringVar(&redirectURIFlag, "u", "", "Redirect URI for OAuth application.")
+	f.StringVar(&redirectURLFlag, "u", "", "Redirect URL for OAuth application.")
 	f.StringVar(&clientIDFlag, "i", "", "Client ID of OAuth application.")
 	f.StringVar(&clientSecretFlag, "s", "", "Client secret of OAuth application.")
 	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
-	if redirectURIFlag == "" {
+	if redirectURLFlag == "" {
 		return fmt.Errorf("please specify redirect URI")
 	}
 	if clientIDFlag == "" {
@@ -256,8 +249,11 @@ func authCommand(args []string) (err error) {
 	if clientSecretFlag == "" {
 		return fmt.Errorf("please specify client secret")
 	}
+	if redirectURL, err = url.Parse(redirectURLFlag); err != nil {
+		return
+	}
 
-	code, err := getCode(clientIDFlag, redirectURIFlag)
+	code, err := getCode(clientIDFlag, redirectURL)
 	if err != nil {
 		return
 	}
@@ -265,7 +261,7 @@ func authCommand(args []string) (err error) {
 	if debugFlag {
 		c.SetLogger(log.New(os.Stdout, "debug: ", 0))
 	}
-	token, err := c.Token(code, redirectURIFlag)
+	token, err := c.Token(code, redirectURLFlag)
 	if err != nil {
 		return
 	}
