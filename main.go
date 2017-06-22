@@ -226,13 +226,13 @@ func run(args []string) (err error) {
 }
 
 func authCommand(args []string) (err error) {
-	var (
-		clientIDFlag     string
-		clientSecretFlag string
-		debugFlag        bool
-		redirectURLFlag  string
-		redirectURL      *url.URL
-	)
+	var clientIDFlag string
+	var clientSecretFlag string
+	var debugFlag bool
+	var redirectURLFlag string
+	var redirectURL *url.URL
+	var code string
+	var token *medium.Token
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
 	f.StringVar(&redirectURLFlag, "u", "", "Redirect URL for OAuth application.")
@@ -240,8 +240,9 @@ func authCommand(args []string) (err error) {
 	f.StringVar(&clientSecretFlag, "s", "", "Client secret of OAuth application.")
 	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
+
 	if redirectURLFlag == "" {
-		return fmt.Errorf("please specify redirect URI")
+		return fmt.Errorf("please specify redirect URL")
 	}
 	if clientIDFlag == "" {
 		return fmt.Errorf("please specify client ID")
@@ -252,24 +253,24 @@ func authCommand(args []string) (err error) {
 	if redirectURL, err = url.Parse(redirectURLFlag); err != nil {
 		return
 	}
-
-	code, err := getCode(clientIDFlag, redirectURL)
-	if err != nil {
+	if code, err = getCode(clientIDFlag, redirectURL); err != nil {
 		return
 	}
+
 	c := medium.NewClient(clientIDFlag, clientSecretFlag, "")
 	if debugFlag {
 		c.SetLogger(log.New(os.Stdout, "debug: ", 0))
 	}
-	token, err := c.Token(code, redirectURLFlag)
-	if err != nil {
+	if token, err = c.Token(code, redirectURLFlag); err != nil {
 		return
 	}
 	if err = saveToken(clientIDFlag, clientSecretFlag, token); err != nil {
 		return
 	}
+
 	fmt.Printf("Your API token was successfully saved in '%s'.\n", tokenFilePath)
 	fmt.Println("Note: This file should be treated as the password and please do NOT expose it.")
+
 	return
 }
 
