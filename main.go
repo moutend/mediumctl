@@ -25,7 +25,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 )
 
-type token struct {
+type Token struct {
 	ApplicationID     string
 	ApplicationSecret string
 	AccessToken       string
@@ -34,12 +34,9 @@ type token struct {
 }
 
 var (
-	version       = "v0.3.0"
-	revision      = "dev"
-	tokenFilePath string
+	version  = "v0.3.0"
+	revision = "dev"
 )
-
-const tokenFileName = ".mediumctl"
 
 func showPostedArticleInfo(p *medium.PostedArticle) {
 	fmt.Printf("Your article was successfully posted.\n\n")
@@ -103,6 +100,15 @@ func parseArticle(filename string) (article medium.Article, publicationNumber in
 
 	return
 }
+
+func getUser(token *Token, debugFlag bool) (u *medium.User, err error) {
+	c := medium.NewClient(token.ApplicationID, token.ApplicationSecret, token.AccessToken)
+	if debugFlag {
+		c.SetLogger(log.New(os.Stdout, "debug: ", 0))
+	}
+	return c.User()
+}
+
 func getCode(clientID string, redirectURL *url.URL) (code string, err error) {
 	listener, err := net.Listen("tcp", redirectURL.Hostname()+":"+redirectURL.Port())
 	if err != nil {
@@ -145,8 +151,22 @@ func getCode(clientID string, redirectURL *url.URL) (code string, err error) {
 	return
 }
 
-func saveToken(clientID, clientSecret string, t *medium.Token) (err error) {
-	b, err := json.Marshal(token{
+func getTokenFilePath() (tokenFilePath string, err error) {
+	var u *user.User
+	const tokenFileName = ".mediumctl"
+
+	if u, err = user.Current(); err != nil {
+		return
+	}
+	tokenFilePath = filepath.Join(u.HomeDir, tokenFileName)
+	return
+}
+
+func writeToken(clientID, clientSecret string, t *medium.Token) (err error) {
+	var file []byte
+	var tokenFilePath string
+
+	file, err = json.Marshal(Token{
 		ApplicationID:     clientID,
 		ApplicationSecret: clientSecret,
 		AccessToken:       t.AccessToken,
@@ -156,60 +176,48 @@ func saveToken(clientID, clientSecret string, t *medium.Token) (err error) {
 	if err != nil {
 		return
 	}
-	err = ioutil.WriteFile(tokenFilePath, b, 0644)
+	if tokenFilePath, err = getTokenFilePath(); err != nil {
+		return
+	}
+	err = ioutil.WriteFile(tokenFilePath, file, 0644)
 	return
 }
 
-func loadToken() (*token, error) {
-	b, err := ioutil.ReadFile(tokenFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("API token is not set. Please run 'auth' at first")
+func readToken() (token *Token, err error) {
+	var file []byte
+	var tokenFilePath string
+
+	if tokenFilePath, err = getTokenFilePath(); err != nil {
+		return
 	}
-	var t token
-	err = json.Unmarshal(b, &t)
-	return &t, err
+	if file, err = ioutil.ReadFile(tokenFilePath); err != nil {
+		err = fmt.Errorf("API token is not set")
+		return
+	}
+
+	token = &Token{}
+	if err = json.Unmarshal(file, token); err != nil {
+		return
+	}
+	return
 }
 
 func main() {
-	err := run(os.Args)
+	var err error
 
-	if err != nil {
-		log.New(os.Stderr, "error: ", 0).Fatal(err)
+	if err = run(os.Args); err != nil {
+		log.Fatal(err)
 		os.Exit(1)
 	}
-
-	os.Exit(0)
 }
+
 func run(args []string) (err error) {
+	var token *Token
+
 	if len(args) < 2 {
 		return helpCommand(args)
 	}
-	u, err := user.Current()
-	if err != nil {
-		return
-	}
-	tokenFilePath = filepath.Join(u.HomeDir, tokenFileName)
 	switch args[1] {
-	case "o":
-		err = authCommand(args)
-	case "oauth":
-		err = authCommand(args)
-	case "r":
-		err = refreshCommand(args)
-	case "refresh":
-		err = refreshCommand(args)
-	case "i":
-		err = infoCommand(args)
-	case "info":
-		err = infoCommand(args)
-	case "p":
-		err = postCommand(args, false)
-	case "publication":
-		err = postCommand(args, false)
-	case "u":
-		err = postCommand(args, true)
-	case "user":
-		err = postCommand(args, true)
 	case "v":
 		err = versionCommand(args)
 	case "version":
@@ -218,6 +226,31 @@ func run(args []string) (err error) {
 		err = helpCommand(args)
 	case "help":
 		err = helpCommand(args)
+	case "o":
+		err = authCommand(args)
+	case "oauth":
+		err = authCommand(args)
+	}
+	if token, err = readToken(); err != nil {
+		return
+	}
+	switch args[1] {
+	case "r":
+		err = refreshCommand(token, args)
+	case "refresh":
+		err = refreshCommand(token, args)
+	case "i":
+		err = infoCommand(token, args)
+	case "info":
+		err = infoCommand(token, args)
+	case "p":
+		err = publicationCommand(token, args)
+	case "publication":
+		err = publicationCommand(token, args)
+	case "u":
+		err = userCommand(token, args)
+	case "user":
+		err = userCommand(token, args)
 	default:
 		fmt.Fprintf(os.Stderr, "%s: '%s' is not a %s subcommand.\n", args[0], args[1], args[0])
 		err = helpCommand(args)
@@ -264,78 +297,64 @@ func authCommand(args []string) (err error) {
 	if token, err = c.Token(code, redirectURLFlag); err != nil {
 		return
 	}
-	if err = saveToken(clientIDFlag, clientSecretFlag, token); err != nil {
+	if err = writeToken(clientIDFlag, clientSecretFlag, token); err != nil {
 		return
 	}
 
-	fmt.Printf("Your API token was successfully saved in '%s'.\n", tokenFilePath)
-	fmt.Println("Note: This file should be treated as the password and please do NOT expose it.")
+	fmt.Println("Your API token was successfully saved ")
 
 	return
 }
 
-func refreshCommand(args []string) (err error) {
-	var (
-		debugFlag bool
-	)
+func refreshCommand(token *Token, args []string) (err error) {
+	var debugFlag bool
+	var refreshedToken *medium.Token
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
 	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
 
-	t, err := loadToken()
-	if err != nil {
-		return
-	}
-	c := medium.NewClient(t.ApplicationID, t.ApplicationSecret, "")
+	c := medium.NewClient(token.ApplicationID, token.ApplicationSecret, "")
 	if debugFlag {
 		c.SetLogger(log.New(os.Stdout, "debug: ", 0))
 	}
-	refreshedToken, err := c.RefreshToken(t.RefreshToken)
-	if err != nil {
+	if refreshedToken, err = c.RefreshToken(token.RefreshToken); err != nil {
 		return
 	}
-	if err = saveToken(t.ApplicationID, t.ApplicationSecret, refreshedToken); err != nil {
+	if err = writeToken(token.ApplicationID, token.ApplicationSecret, refreshedToken); err != nil {
 		return
 	}
-	fmt.Println("Your API token was successfully refreshed.")
+	fmt.Println("Your API token has been refreshed.")
 	return
 }
-func infoCommand(args []string) (err error) {
-	var (
-		debugFlag bool
-	)
+
+func infoCommand(token *Token, args []string) (err error) {
+	var debugFlag bool
+	var u *medium.User
+	var ps []*medium.Publication
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
 	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
 
-	t, err := loadToken()
-	if err != nil {
+	if u, err = getUser(token, debugFlag); err != nil {
 		return
 	}
-	c := medium.NewClient(t.ApplicationID, t.ApplicationSecret, t.AccessToken)
-	if debugFlag {
-		c.SetLogger(log.New(os.Stdout, "debug: ", 0))
-	}
-	u, err := c.User()
-	if err != nil {
-		return
-	}
+
 	fmt.Printf("You are logged in as:\n\n")
 	fmt.Printf("Name: %s\n", u.Name)
 	fmt.Printf("Username: %s\n", u.Username)
 	fmt.Printf("URL: %s", u.URL)
 	fmt.Printf("\n")
 
-	ps, err := u.Publications()
-	if err != nil {
+	if ps, err = u.Publications(); err != nil {
 		return
 	}
 	if len(ps) == 0 {
 		fmt.Println("You have no publications yet.")
 		return
 	}
+
 	fmt.Printf("\nYou have publication(s) below:\n\n")
 	for i, p := range ps {
 		fmt.Printf("Number: %d\n", i)
@@ -346,55 +365,64 @@ func infoCommand(args []string) (err error) {
 	return
 }
 
-func postCommand(args []string, userFlag bool) (err error) {
-	var (
-		debugFlag bool
-	)
+func userCommand(token *Token, args []string) (err error) {
+	var debugFlag bool
+	var article medium.Article
+	var u *medium.User
+	var postedArticle *medium.PostedArticle
 
 	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
 	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
 	f.Parse(args[2:])
 
-	article, publicationNumber, err := parseArticle(f.Args()[0])
-	if err != nil {
+	if article, _, err = parseArticle(f.Args()[0]); err != nil {
 		return
 	}
-	t, err := loadToken()
-	if err != nil {
+	if u, err = getUser(token, debugFlag); err != nil {
 		return
 	}
-	c := medium.NewClient(t.ApplicationID, t.ApplicationSecret, t.AccessToken)
-	if debugFlag {
-		c.SetLogger(log.New(os.Stdout, "debug: ", 0))
-	}
-	u, err := c.User()
-	if err != nil {
+	if postedArticle, err = u.Post(article); err != nil {
 		return
 	}
-	if userFlag {
-		p, err := u.Post(article)
-		if err != nil {
-			return err
-		}
-		showPostedArticleInfo(p)
-		return nil
+	showPostedArticleInfo(postedArticle)
+
+	return
+}
+
+func publicationCommand(token *Token, args []string) (err error) {
+	var debugFlag bool
+	var article medium.Article
+	var publicationNumber int
+	var u *medium.User
+	var ps []*medium.Publication
+	var postedArticle *medium.PostedArticle
+
+	f := flag.NewFlagSet(fmt.Sprintf("%s %s", args[0], args[1]), flag.ExitOnError)
+	f.BoolVar(&debugFlag, "debug", false, "Enable debug output.")
+	f.Parse(args[2:])
+
+	if article, publicationNumber, err = parseArticle(f.Args()[0]); err != nil {
+		return
 	}
-	ps, err := u.Publications()
-	if err != nil {
+	if u, err = getUser(token, debugFlag); err != nil {
+		return
+	}
+	if ps, err = u.Publications(); err != nil {
 		return
 	}
 	if len(ps) == 0 {
-		return fmt.Errorf("you have no publications yet")
+		err = fmt.Errorf("you have no publications yet")
+		return
 	}
 	if publicationNumber < 0 || publicationNumber > len(ps)-1 {
 		err = fmt.Errorf("publication number '%d' is invalid", publicationNumber)
 		return
 	}
-	p, err := ps[publicationNumber].Post(article)
-	if err != nil {
+	if postedArticle, err = ps[publicationNumber].Post(article); err != nil {
 		return
 	}
-	showPostedArticleInfo(p)
+	showPostedArticleInfo(postedArticle)
+
 	return
 }
 
