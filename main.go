@@ -22,7 +22,6 @@ import (
 
 	"github.com/ericaro/frontmatter"
 	medium "github.com/moutend/go-medium"
-	"github.com/skratchdot/open-golang/open"
 )
 
 type Token struct {
@@ -138,9 +137,8 @@ func getCode(clientID string, redirectURL *url.URL) (code string, err error) {
 	scope := "basicProfile,listPublications,publishPost"
 	query := fmt.Sprintf("client_id=%s&scope=%s&state=%s&response_type=code&redirect_uri=%s", clientID, scope, state, redirectURL)
 	uri := "https://medium.com/m/oauth/authorize?" + query
-	if err = open.Start(uri); err != nil {
-		return
-	}
+	fmt.Println("Please open this URL:", uri)
+
 	select {
 	case code = <-responseChann:
 		break
