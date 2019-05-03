@@ -33,8 +33,8 @@ ifndef VERSION
 	@echo '[ERROR] $$VERSION must be specified'
 	exit 255
 endif
-	go build -ldflags "-X main.revision=$(REVISION) -X main.version=$(VERSION)" \
-		-o $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH)_$(VERSION) main.go
+	go build -ldflags "-X main.commit=$(REVISION) -X main.version=$(VERSION)" \
+		-o $(RELEASE_DIR)/$(EXECUTABLE_NAME)_$(GOOS)_$(GOARCH)_$(VERSION)
 
 clean:
 	rm -rf $(RELEASE_DIR)/*

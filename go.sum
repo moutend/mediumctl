@@ -2,6 +2,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ericaro/frontmatter v0.0.0-20141225210444-9fedef9406e4 h1:oiAMKnBLTEddU4iszyKbHft09X9tE49oO5SeJ+S3pvw=
 github.com/ericaro/frontmatter v0.0.0-20141225210444-9fedef9406e4/go.mod h1:Xy0DdToffIGb/ZMCwM5zFgIQOrVh0cKvNABpKRJYo1w=
+github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
+github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/moutend/go-medium v0.3.1 h1:TKue9PopVwoIj54fYr+0HpPpPZcxeu0Iy9jzmz60c/o=
 github.com/moutend/go-medium v0.3.1/go.mod h1:FvSK5cKIxADGii/u94DzTDVTQBdu1Y8QW8EYjC84t+4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
