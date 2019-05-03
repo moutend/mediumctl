@@ -7,15 +7,15 @@ import (
 )
 
 var (
-	version  = "v0.3.0"
-	revision = "dev"
+	version = "v0.4.0"
+	commit  = "latest"
 )
 
 var versionCommand = &cobra.Command{
 	Use:     "version",
 	Aliases: []string{"v"},
 	RunE: func(c *cobra.Command, args []string) (err error) {
-		fmt.Printf("%s-%s\n", version, revision)
+		fmt.Printf("%s-%s\n", version, commit)
 
 		return nil
 	},

@@ -7,8 +7,8 @@ import (
 )
 
 var infoCommand = &cobra.Command{
-	Use:     "version",
-	Aliases: []string{"v"},
+	Use:     "info",
+	Aliases: []string{"i"},
 	RunE: func(c *cobra.Command, args []string) (err error) {
 		fmt.Printf("Name: %s\n", user.Name)
 		fmt.Printf("Username: %s\n", user.Username)

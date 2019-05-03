@@ -17,6 +17,12 @@ var (
 var rootCommand = &cobra.Command{
 	Use: "mediumctl",
 	PersistentPreRunE: func(c *cobra.Command, args []string) (err error) {
+		switch c.Use {
+		case "auth", "version":
+			return nil
+		default:
+		}
+
 		token, err := readToken()
 		if err != nil {
 			return err

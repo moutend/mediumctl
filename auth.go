@@ -23,9 +23,6 @@ var (
 var authCommand = &cobra.Command{
 	Use:     "auth",
 	Aliases: []string{"a"},
-	PersistentPreRunE: func(c *cobra.Command, args []string) (err error) {
-		return nil
-	},
 	RunE: func(c *cobra.Command, args []string) (err error) {
 		redirectURL, err := url.Parse(authCommandRedirectURL)
 		if err != nil {
