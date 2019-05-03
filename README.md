@@ -1,4 +1,5 @@
-# mediumctl
+mediumctl
+=========
 
 [![GitHub release](https://img.shields.io/github/release/moutend/mediumctl.svg?style=flat-square)][release]
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)][license]
@@ -8,65 +9,65 @@
 [license]: https://github.com/moutend/mediumctl/blob/master/LICENSE
 [status]: https://circleci.com/gh/moutend/mediumctl
 
-`mediumctl` is a CLI tool for publishing HTML or Markdown file to the Medium.
+`mediumctl` is a CLI tool for publishing HTML / Markdown to the Medium.
 
-# Installation
+## Installation
 
-## Windows / Linux
+### Windows / Linux
 
 You can download the executable for 32 bit / 64 bit at [GitHub releases page](https://github.com/moutend/mediumctl/releases/).
 
-## Mac
+### Mac
 
 The easiest way is Homebrew.
 
-```shell
-$ brew tap moutend/homebrew-mediumctl
-$ brew install mediumctl
+```console
+brew tap moutend/homebrew-mediumctl
+brew install mediumctl
 ```
 
-## `go install`
+### `go build`
 
-If you have already set up Go environment, just `go install`.
+If you have already set up Go environment, just `go build`.
 
-```shell
-$ go install github.com/moutend/mediumctl
+Note: Go v1.12 required.
+
+```console
+git clone https://github.com/moutend/mediumctl
+$ go build
 ```
 
-# Before starting
+## Setup API token with OAuth
 
-## Setting up API token with OAuth
+First, you need create an OAuth application. Visit https://medium.com/me/settings. You'll find the Developer section, please create an OAuth application for `mediumctl`.
 
-First off, you need set up API token. Open https://medium.com/me/applications, please create a new OAuth application.
-You can specify any client name and description, but you must specify local IP address assigned your machine (e.g. `192.168.1.2`) as the redirect URI.
+You can set the redirect URL to the localhost. However, the host name `https://localhost` is not accepted, use the IP address `http://127.0.0.1`.
 
-After creating OAuth application, please run `oauth` command with the following flags:
+After creating the OAuth application, run `auth` command with the following flags:
 
 - `-u` ... redirect URI
 - `-i` ... client ID
 - `-s` ... client secret
 
-In the following example, it assumes that you have specified `http://192.168.1.2:4567` as the redirect URI for OAuth application.
+For example:
 
-```shell
-$ mediumctl auth -u http://192.168.1.2:4567 -i CLIENT_ID -s CLIENT_SECRET
+```console
+mediumctl auth -u http://127.0.0.1:4000 -i xxxxxxxx -s xxxxxxxx
 ```
 
-Then browser will be automatically opened, please check the listed grant types and press OK to continue.
-If you would be asked network access permission during this step, please allow that permission.
-Internally, `mediumctl` launches local web server with given host name and port number, and then extract the shortlive code from redirected HTTP request to generate API token. This is the most tricky part of `mediumctl`.
+Because the `mediumctl` launches the local web server to obtain the response from the API server, allow the network access when the permission is required.
 
-Your API token will be saved at `$HOME/.mediumctl` and the web browser will be closed automatically.
 Now you can post an article to your user profile and your publications.
 
-## Setting up API token with self-issued token
+### Setup API token with self-issued token
 
 Alternatively, it's not recommended but you can set up an API token by hand.
 
-Open https://medium.com/me/settings, please generate self-issued API token.
+Go to https://medium.com/me/settings, please generate self-issued API token.
+
 Then create a JSON file that contains following key-value pairs at `$HOME/.mediumctl`.
 
-```js
+```javascript
 {
   "AccessToken": "SELF_ISSUED_TOKEN"
 }
@@ -74,52 +75,33 @@ Then create a JSON file that contains following key-value pairs at `$HOME/.mediu
 
 `SELF_ISSUED_TOKEN` is your self-issued token. This file must be treated as the password and do NOT expose it.
 
-## Publishing an article
+## Publish your article
 
-Publishing an article is easy.
-
-```shell
-$ mediumctl publication example.md
+```console
+mediumctl publication ./example.md
 ```
 
 That's it! The Markdown file `example.md` will be published at your publication.
+
 If you have more than one publications, you can specify which publication to be published at. For more details, please read the next section.
 
-In the same manner, you can publish an article to the your user profile.
+You can also publish an article to the your user profile.
 
-```shell
-$ mediumctl user example.html
+```console
+mediumctl user ./example.html
 ```
 
 The HTML file `example.html` will be published at your profile.
 
-# Get information about the user and its publications
+## Get information about the user and its publications
 
 To get information about the user and its publications, use `info` command.
 
-```shell
-$ mediumctl info
+```console
+mediumctl info
 ```
 
-The output looks like this:
-
-```shell
-$ mediumctl info
-You are logged in as:
-
-Name: Test User
-Username: apitestuser0201
-URL: https://medium.com/@apitestuser0201
-
-You have publication(s) below:
-
-Number: 0
-Name: Test publication
-Description: testing medium api
-URL: https://medium.com/test-publication
-```
-
-# Frontmatter for HTML and Markdown
+## HTML and Markdown format
 
 You can provide additional information with frontmatter. The following table shows what property can be used.
 
@@ -127,22 +109,14 @@ You can provide additional information with frontmatter. The following table sho
 |:--|:--|:--|
 | `title` | Title of the article | `Untitled` |
 | `tags` | Tags associated the article. Only three tags can be specified. | blank |
-| `publishedAt` | The date that the article published at. | current time |
-| `publishStatus` | One of `public`, `draft` and `unlisted`. `public` |
+| `publishedAt` | The date that the article published at. (Use RFC3339 date and time format) | current time |
+| `status` | One of `public`, `draft` and `unlisted`. `public` |
 | `number` | Publication number displayed when you run `info` command. | `0` |
 | `notify` | Whether notify followers that the user has published new article. | `false` |
 | `license` | License of the article listed below. | `all-rights-reserved` |
-| `canonicalURL` | Canonical URL for the article. | blank |
+| `curl` | Canonical URL for the article. | blank |
 
-### Date and time layout for `publishedAt`
-
-If you want to specify `publishedAt`, follow this layout:
-
-```
-2006-01-02T15:04:05+07:00
-```
-
-Note that you cannot specify future date as the publish date of the article. Also, you cannot specify the publish date before Jan 1st, 1970.
+note: You can't specify the future date as the publish date. Also, you can't specify the older date before Jan 1st, 1970.
 
 ### Valid licenses for `license`
 
@@ -158,14 +132,14 @@ Valid values for `licence` are:
 - cc-40-zero
 - public-domain
 
-For example, you can create a Markdown file like this:
+### Example
 
 ```markdown
 ---
 title: The best way to learn Go
 tags: golang programming
-publishStatus: draft
-canonicalURL: https://blog.example.com/the-best-way-to-learn-go
+status: draft
+curl: https://blog.example.com/the-best-way-to-learn-golang
 ---
 
 # The best way to learn Go
@@ -175,19 +149,15 @@ If you're looking for the best way to learn Go, this article might help you.
 # A Tour of Go
 
 As you know, [a tour of Go](https://golang.org) is the best way to learn go.
-
-## Why Go?
-
-Simple is not equal to easy, but simple made you easy.
 ```
 
-# Tips for publishing HTML / Markdown
+### Tips for publishing HTML / Markdown
 
-## Valid HTML tags
+#### Valid HTML tags
 
-Some HTML tags cannot be used. For a full list of accepted HTML tags, please see [Medium API documentation](https://medium.com/@katie/a4367010924e).
+You can use the accepted HTML tags. For a full list of accepted HTML tags, please see [Medium API documentation](https://medium.com/@katie/a4367010924e).
 
-## Heading element conversion
+#### `h1` conversion
 
 Note that heading elements are automatically converted according to the following rules.
 
@@ -202,7 +172,6 @@ Note that heading elements are automatically converted according to the followin
 | `h5` and `h6` | `p` (Normal paragraph) |
 
 Note that the only first h1 and h2 are treated as title and sub title of the article.
-This is the specification of Medium API and you cannot change this behavior.
 
 For example, if you have the markdown file like this:
 
@@ -222,19 +191,23 @@ first paragraph ...
 second paragraph ...
 ```
 
-In the example above, first heading level 1 element `# Title of the article` will be treated as the title of the article, and there is no sub title in this article.
-The second and third heading level 1 elements are treated as heading level 3.
-I recommend you to specify the first heading level 1 as same as title of the article to avoid confusion.
+The first `h1` treated as `h1`. The second and third `h1` are treated as `h3`.
 
-## API limitation
+#### API limitation
 
-If you published a large number of articles in a short time, publishing would be restricted.
+If you did publish the many articles in a short time, you may restricted temporary.
 
-```shell
-$ mediumctl publication example.md
+```console
+mediumctl publication example.md
 error: User has reached the rate limit for publishing today. (code:-1)
 ```
 
-# LICENSE
+If you got the rate and limit error, you must wait 24 hours. Then you'll be activated automatically.
+
+## LICENSE
 
 MIT
+
+## Author
+
+[Yoshiyuki Koyanagi <moutend@gmail.com>](https://github.com/moutend)

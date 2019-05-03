@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	tokenFileName = ".mediumctl"
+	TokenFileName = ".mediumctl"
+	MediumctlHome = "MEDIUMCTL_HOME"
 )
 
 type Token struct {
@@ -23,12 +24,16 @@ type Token struct {
 }
 
 func getTokenPath() (tokenPath string, err error) {
+	if tokenPath = os.Getenv(MediumctlHome); tokenPath != "" {
+		return tokenPath, nil
+	}
+
 	wd, err := os.Getwd()
 	if err != nil {
 		return tokenPath, err
 	}
 
-	tokenPath = filepath.Join(wd, tokenFileName)
+	tokenPath = filepath.Join(wd, TokenFileName)
 
 	return tokenPath, nil
 }
