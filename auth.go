@@ -22,6 +22,8 @@ var (
 
 var authCommand = &cobra.Command{
 	Use:     "auth",
+	Short:   "Setup the API token with OAuth",
+	Long:    "Setup the API token with OAuth",
 	Aliases: []string{"a"},
 	RunE: func(c *cobra.Command, args []string) (err error) {
 		redirectURL, err := url.Parse(authCommandRedirectURL)

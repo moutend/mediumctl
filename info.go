@@ -8,6 +8,8 @@ import (
 
 var infoCommand = &cobra.Command{
 	Use:     "info",
+	Short:   "Show the info about yourself",
+	Long:    "Show the info about yourself",
 	Aliases: []string{"i"},
 	RunE: func(c *cobra.Command, args []string) (err error) {
 		fmt.Printf("Name: %s\n", user.Name)

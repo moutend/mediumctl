@@ -8,6 +8,8 @@ import (
 
 var refreshCommand = &cobra.Command{
 	Use:     "refresh",
+	Short:   "Refresh the existing API token",
+	Long:    "Refresh the existing API token",
 	Aliases: []string{"r"},
 	RunE: func(c *cobra.Command, args []string) (err error) {
 		token, err := readToken()

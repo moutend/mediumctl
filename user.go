@@ -4,6 +4,8 @@ import "github.com/spf13/cobra"
 
 var userCommand = &cobra.Command{
 	Use:     "user",
+	Short:   "Publish the article to the user page",
+	Long:    "Publish the article to the user page",
 	Aliases: []string{"u"},
 	RunE: func(c *cobra.Command, args []string) (err error) {
 		if len(args) == 0 {

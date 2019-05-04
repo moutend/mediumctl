@@ -8,6 +8,8 @@ import (
 
 var publicationCommand = &cobra.Command{
 	Use:     "publication",
+	Short:   "Publish the article to the publication page",
+	Long:    "Publish the article to the publication page",
 	Aliases: []string{"p"},
 	RunE: func(c *cobra.Command, args []string) (err error) {
 		if len(args) == 0 {
